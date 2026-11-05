@@ -1,0 +1,1 @@
+Referensi Arsitektur Data (RAD), yaitu suatu kerangka acuan yang digunakan untuk mengelompokkan dan mengklasifikasikan data berdasarkan kategori tertentu sehingga data dapat lebih mudah ditelusuri, dipahami, dan digunakan yang tertuang dalam Peraturan Presiden Nomor 132 Tahun 2022 tentang Arsitektur Sistem Pemerintahan Berbasis Elektronik (SPBE) Nasional.
