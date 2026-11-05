@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aplikasi Klasifikasi Kategori Rencana Aksi Daerah (RAD) Berbasis Machine Learning - Impor File Excel Batch & Unduh Hasil">
+    <title>Klasifikasi Kategori RAD - Batch Excel Dashboard</title>
+    <!-- Fonts & CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <!-- Glow background effect -->
+        <div class="glow-header"></div>
+        
+        <!-- Header -->
+        <header>
+            <h1 id="app-title">Klasifikasi Kategori RAD</h1>
+            <p class="subtitle" id="app-subtitle">Sistem otomatis klasifikasi Rencana Aksi Daerah (RAD) berbasis Machine Learning. Impor file Excel multi-baris dan unduh hasil klasifikasi secara instan.</p>
+        </header>
+
+        <!-- Stats Counter Section -->
+        <section class="stats-grid" aria-label="Statistik Model">
+            <div class="stat-card">
+                <div class="stat-icon" aria-hidden="true">
+                    <i data-lucide="database"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Total Data Latih Bersih</h3>
+                    <div class="stat-number" id="stat-total-samples">-</div>
+                </div>
+            </div>
+            
+            <div class="stat-card accent-purple">
+                <div class="stat-icon" aria-hidden="true">
+                    <i data-lucide="layers"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Kategori Terdaftar</h3>
+                    <div class="stat-number" id="stat-total-categories">-</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" aria-hidden="true">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Akurasi Model Evaluasi</h3>
+                    <div class="stat-number" id="stat-accuracy">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mode Switcher Tabs -->
+        <nav class="mode-tabs" aria-label="Metode Klasifikasi">
+            <button type="button" class="tab-btn active" id="tab-excel-btn">
+                <i data-lucide="file-spreadsheet"></i> Impor File Excel (Multi-Baris)
+            </button>
+        </nav>
+
+        <!-- Main Workspace Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Side: Interactive Excel / Manual Classifier -->
+            <div class="workspace-col">
+                
+                <!-- SECTION 1: EXCEL BATCH CLASSIFIER (PRIMARY) -->
+                <section class="card" id="excel-workspace-card" aria-labelledby="excel-card-title">
+                    <div class="card-header-flex">
+                        <h2 class="card-title" id="excel-card-title">
+                            <i data-lucide="upload-cloud"></i> Impor File Excel
+                        </h2>
+                        <a href="/download-template" class="btn-link-template" id="btn-download-template" title="Unduh format Excel contoh">
+                            <i data-lucide="file-down"></i> Unduh Format Excel
+                        </a>
+                    </div>
+                    
+                    <p class="card-instruction">
+                        Pilih file Excel (<strong>.xlsx</strong> atau <strong>.xls</strong>) yang memiliki kolom <strong>"Nama Data"</strong> dan <strong>"Definisi"</strong>. Model akan mengklasifikasikan seluruh baris dan menyematkan kolom <strong>"Kategori RAD"</strong> di kolom paling kanan.
+                    </p>
+
+                    <!-- Drag and drop zone -->
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden">
+                        <div class="drop-zone-content" id="drop-zone-prompt">
+                            <div class="drop-icon">
+                                <i data-lucide="file-spreadsheet" size="48"></i>
+                            </div>
+                            <h3 class="drop-title">Tarik & Letakkan file Excel di sini</h3>
+                            <p class="drop-subtitle">atau <span class="drop-browse">klik untuk menjelajahi file</span></p>
+                            <span class="file-badge">Format yang didukung: .xlsx, .xls (Multi-baris)</span>
+                        </div>
+
+                        <!-- Selected File Preview (hidden by default) -->
+                        <div class="selected-file-preview" id="selected-file-preview" style="display: none;">
+                            <div class="file-info-box">
+                                <div class="file-icon-badge">
+                                    <i data-lucide="file-check-2" size="28"></i>
+                                </div>
+                                <div class="file-meta">
+                                    <h4 class="file-name" id="selected-file-name">data.xlsx</h4>
+                                    <span class="file-size" id="selected-file-size">0 KB</span>
+                                </div>
+                                <button type="button" class="btn-remove-file" id="btn-remove-file" title="Ganti file">
+                                    <i data-lucide="x" size="18"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="button-group">
+                        <button type="button" id="btn-classify-excel" class="btn btn-primary btn-full" disabled>
+                            <span class="spinner" id="excel-spinner"></span>
+                            <i data-lucide="cpu" id="excel-btn-icon"></i>
+                            <span class="btn-text" id="excel-btn-text">Klasifikasikan File Excel</span>
+                        </button>
+                    </div>
+
+                    <!-- Batch Result Container (Revealed after successful classification) -->
+                    <div class="batch-result-panel" id="batch-result-panel" style="display: none;">
+                        <div class="result-success-banner">
+                            <div class="banner-icon">
+                                <i data-lucide="check-circle-2" size="28"></i>
+                            </div>
+                            <div class="banner-text">
+                                <h4>Klasifikasi Selesai!</h4>
+                                <p id="batch-summary-text">0 baris data berhasil diklasifikasikan.</p>
+                            </div>
+                            <a href="#" id="btn-download-result" class="btn btn-download-glow">
+                                <i data-lucide="download"></i> Unduh File Excel Hasil
+                            </a>
+                        </div>
+
+                        <!-- Category Distribution Pills -->
+                        <div class="batch-stats-section">
+                            <h4 class="section-subtitle">
+                                <i data-lucide="pie-chart" size="16"></i> Distribusi Kategori pada File
+                            </h4>
+                            <div class="category-pills-container" id="category-pills-container">
+                                <!-- Loaded dynamically via JS -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="info-box">
+                        <div class="info-box-icon" aria-hidden="true">
+                            <i data-lucide="info"></i>
+                        </div>
+                        <div class="info-box-text">
+                            Hasil klasifikasi otomatis ditulis pada <strong>kolom paling kanan</strong> dengan nama kolom <strong>"Kategori RAD"</strong>. File hasil dapat langsung diunduh dan dibuka di Windows.
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Side: Categories Reference List -->
+            <aside class="sidebar-col">
+                <section class="card list-card" aria-labelledby="list-card-title">
+                    <h2 class="card-title" id="list-card-title">
+                        <i data-lucide="list"></i> Daftar Kategori RAD
+                    </h2>
+                    
+                    <div class="search-wrapper">
+                        <span class="search-icon" aria-hidden="true">
+                            <i data-lucide="search" size="18"></i>
+                        </span>
+                        <input type="text" id="category-search" class="form-control search-control" placeholder="Cari kategori referensi...">
+                    </div>
+
+                    <div class="category-list-scroll" id="categories-list-container">
+                        <!-- Loaded dynamically via JS -->
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            Memuat data kategori...
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast-notification" role="alert">
+        <i data-lucide="check-circle" class="toast-icon"></i>
+        <span id="toast-message">Notifikasi</span>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Dashboard Klasifikasi RAD. Dikembangkan untuk Magang APK. | <a href="#" id="reload-model-link">Muat Ulang Statistik</a></p>
+    </footer>
+
+    <!-- Lucide Icons Library for Premium Aesthetics -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

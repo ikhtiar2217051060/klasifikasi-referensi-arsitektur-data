@@ -1,0 +1,1 @@
+Realisasi pembiayaan modal kerja dan investasi bagi pelaku usaha mikro, kecil, dan menengah dengan subsidi bunga pemerintah
